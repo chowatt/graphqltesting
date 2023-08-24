@@ -54,7 +54,7 @@ export const Ticket = gql`
     comment: String
   }
 
-  input TicketInputContent {
+  input TicketInput {
     subject: String
     priority_id: Int
     status_id: Int
@@ -62,7 +62,7 @@ export const Ticket = gql`
     assigned_to_user_id: Int
   }
 
-  input ActivityContent {
+  input ActivityInput {
     user_id: Int
     created: Date
     modified: Date
@@ -83,17 +83,19 @@ export const Ticket = gql`
     users: [User]
     comment: Comment
     comments: [Comment]
+    ticket2(id: Int!): [Ticket]
   }
 
   type Mutation {
-    addTicket(ticket: TicketInputContent, activities: [Activity]): Ticket
+    addTicket(ticket: TicketInput): Ticket
     addStatus(slug: String!, name: String!): Status
     addPriority(slug: String!, name: String!): Priority
     addUser(name: String!, email: String!): User
-    addActivity(ticket_id: Int!, user_id: Int!, created: Date, modified: Date, comment: String): User
+    #addActivity(ticket_id: Int!, user_id: Int!, created: Date, modified: Date, comment: String): User
     updateTicket(id: Int!, subject: String, priority_id: Int, status_id: Int, user_id: Int, assigned_to_user_id: Int): Ticket
     updateStatus(id: Int!, slug: String, name: String): Status
     updatePriority(id: Int!, slug: String, name: String): Priority
     updateUser(id: Int!, name: String, email: String): User
+    addTicketGraph(ticket: TicketInput, activities: [ActivityInput]): Ticket
   }
 `;

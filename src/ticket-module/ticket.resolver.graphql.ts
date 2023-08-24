@@ -29,37 +29,27 @@ export const TicketResolver = {
             return context.dataSources.tickets.db.query.select("*").from("users").where(criteria);
         },
         comment: (_, {id}, context) => {
-            return context.dataSources.apollo2.db.query.select("*").from("ticket_comments").where({id: id});
+            return context.dataSources.tickets.db.query.select("*").from("ticket_comments").where({id: id});
         },
         comments: (_, criteria, context) => {
-            return context.dataSources.apollo2.db.query.select("*").from("ticket_comments").where(criteria);
+            return context.dataSources.tickets.db.query.select("*").from("ticket_comments").where(criteria);
+        },
+        ticket2: (_, criteria, context) => {
+            return context.dataSources.tickets.SelectTickets();
         }
     },
     Mutation: {
         async addTicket(_, params, {dataSources}){
-            var activities = undefined;
-            if(params.input.activities){
-                activities = params.input.activities;
-                delete params.input.activities;
-            }
-
-            console.log(params);
-            console.log(activities);
             const output = await dataSources.tickets.db.query.insert(params.input, 'id').into("tickets");
-            const ticket_id = output[0];
-
-            if(activities)
-            {
-                activities.forEach(element => {
-                    element.ticket_id = ticket_id;
-                    //this.Mutation.addActivity(_, element, {dataSources});
-                    console.log(element);
-                });
-            }
-
             const output2 = await dataSources.tickets.db.query.first("*").from('tickets').where({id: output[0]});
             return output2;
         }, 
+        async addTicketGraph(_, {ticket, activities}, {dataSources}){
+            const ticket_id = await dataSources.tickets.CreateTicketGraph(ticket, activities);
+            const output2 = await dataSources.tickets.SelectTicket(ticket_id[0]);
+            return output2;
+        },
+
         async addUser(_, params, {dataSources}){
             const output = await dataSources.tickets.db.query.insert([params], 'id').into("users");
             const output2 = await dataSources.tickets.db.query.first("*").from('users').where({id: output[0]});
@@ -75,11 +65,11 @@ export const TicketResolver = {
             const output2 = await dataSources.tickets.db.query.first("*").from('status').where({id: output[0]});
             return output2;
         },
-        async addActivity(_, params, {dataSources}){
-            const output = await dataSources.tickets.db.query.insert([params], 'id').into("activities");
-            const output2 = await dataSources.tickets.db.query.first("*").from('activities').where({id: output[0]});
-            return output2;
-        },
+        // async addActivity(_, params, {dataSources}){
+        //     const output = await dataSources.tickets.db.query.insert([params], 'id').into("activities");
+        //     const output2 = await dataSources.tickets.db.query.first("*").from('activities').where({id: output[0]});
+        //     return output2;
+        // },
         async updateTicket(_, params, {dataSources}){
             const output = await dataSources.tickets.db.query.update(params, ['id']).into("tickets").where({id: params.id});
             const output2 = await dataSources.tickets.db.query.first("*").from('tickets').where({id: output[0]});
@@ -130,7 +120,7 @@ export const TicketResolver = {
             return dataSources.tickets.db.query.select("*").from('activities').where({ticket_id: id});
         },
         comments({id}: any, _: any, {dataSources}){
-            return dataSources.apollo2.db.query.select("*").from('ticket_comments').where({ticket_id: id});
+            return dataSources.tickets.db.query.select("*").from('ticket_comments').where({ticket_id: id});
         }
     }
 };

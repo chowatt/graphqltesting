@@ -1,4 +1,3 @@
 node_modules
 dist
-MyDataSource.ts
-apollo.datasource.ts
+.env

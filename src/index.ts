@@ -1,64 +1,41 @@
+import 'dotenv/config.js';
+
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
-import { MyDataSource } from "./MyDataSource.js";
+import { MySqlDatasource } from "./data.sources/mysql.datasource.js";
 import { application } from './application.js';
+import { ApolloDatasource } from './data.sources/mysql.apollo.datasource.js';
+import {
+  apolloConfig, colleagueToolsConfig
+} from './environment.js';
 
-const knexConfig = {
-  client: "mysql",
-  connection: {
-    host : 'mysql01.howattech.com',
-    port : 3306,
-    user : 'apollo',
-    password : 'apollo',
-    database : 'apollo'
-  },
-};
+// process.env.USER_ID
 
-const apollo2Config = {
-  client: "mysql",
-  connection: {
-    host : 'mysql01.howattech.com',
-    port : 3306,
-    user : 'apollo',
-    password : 'apollo',
-    database : 'apollo2'
-  },
-};
-
-// Optional - if you have different read write instances
-const writeKnexConfig = {
-  client: "mysql",
-  connection: {
-    host : 'mysql01.howattech.com',
-    port : 3306,
-    user : 'apollo',
-    password : 'apollo',
-    database : 'apollo'
-  },
-};
-
+console.log(apolloConfig(process.env));
 
 const schema = application.createSchemaForApollo();
 
 // The ApolloServer constructor requires two parameters: your schema
 // definition and your set of resolvers.
 const server = new ApolloServer({
-    schema,
-  });
-  
-  // Passing an ApolloServer instance to the `startStandaloneServer` function:
-  //  1. creates an Express app
-  //  2. installs your ApolloServer instance as middleware
-  //  3. prepares your app to handle incoming requests
-  const { url } = await startStandaloneServer(server, {
-    listen: { port: 4000 },
-    context: async() => {
-      const {cache} = server;
-      return {dataSources: {
-        tickets: new MyDataSource({ knexConfig, cache, writeKnexConfig }),
-        apollo2: new MyDataSource({ knexConfig :apollo2Config, cache })
-      }}
+  schema,
+});
+
+// Passing an ApolloServer instance to the `startStandaloneServer` function:
+//  1. creates an Express app
+//  2. installs your ApolloServer instance as middleware
+//  3. prepares your app to handle incoming requests
+const { url } = await startStandaloneServer(server, {
+  listen: { port: 4000 },
+  context: async () => {
+    const { cache } = server;
+    return {
+      dataSources: {
+        tickets: new MySqlDatasource({ knexConfig: apolloConfig(process.env), cache }),
+        ct: new MySqlDatasource({ knexConfig: colleagueToolsConfig(process.env), cache})
+      }
     }
-  });
-  
-  console.log(`🚀  Server ready at: ${url}`);
+  }
+});
+
+console.log(`🚀  Server ready at: ${url}`);
